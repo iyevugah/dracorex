@@ -4,7 +4,7 @@
 
 /**
 * This class uses the stress update material in a radial return isotropic creep
-* model.  This class computes the primary creep component of the modified Lubby2 creep.
+* model.  This class computes the secondary creep component of the modified Lubby2 creep.
  */
 
 template <bool is_ad>
