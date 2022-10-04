@@ -1,5 +1,3 @@
-//* AJ
-
 #include "EpsKmodLubby2.h"
 
 #include "Function.h"
