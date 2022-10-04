@@ -1,5 +1,3 @@
-//* AJ
-
 #pragma once
 
 #include "RadialReturnStressUpdate.h"
