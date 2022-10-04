@@ -5,8 +5,8 @@
 #include "Function.h"
 #include "ElasticityTensorTools.h"
 
-registerMooseObject("TensorMechanicsApp", ADEpsKmodLubby2);
-registerMooseObject("TensorMechanicsApp", EpsKmodLubby2);
+registerMooseObject("dracorexApp", ADEpsKmodLubby2);
+registerMooseObject("dracorexApp", EpsKmodLubby2);
 
 template <bool is_ad>
 InputParameters
