@@ -7,14 +7,14 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "EpsmodLubby2.h"
+#include "modLubby2.h"
 
-registerMooseObject("TensorMechanicsApp", EpsmodLubby2);
-registerMooseObject("TensorMechanicsApp", ADEpsmodLubby2);
+registerMooseObject("TensorMechanicsApp", modLubby2);
+registerMooseObject("TensorMechanicsApp", ADmodLubby2);
 
 template <bool is_ad>
 InputParameters
-EpsmodLubby2Templ<is_ad>::validParams()
+modLubby2Templ<is_ad>::validParams()
 {
   InputParameters params = RadialReturnCreepStressUpdateBaseTempl<is_ad>::validParams();
   params.addClassDescription(
@@ -22,7 +22,6 @@ EpsmodLubby2Templ<is_ad>::validParams()
       "This class computes the modified Lubby2 creep.");
   // Maxwell parameters
   params.addParam<Real>("mvM", "Maxwell viscosity parameter");
-  params.addParam<Real>("n_exponent", "Exponent on effective stress in power-law equation");
   params.addRequiredParam<Real>("etaM0", "Initial Maxwell Viscosity");
   // Kelvin parameters
   params.addParam<Real>("mvK", "Kelvin ViscoParameter");
@@ -33,7 +32,7 @@ EpsmodLubby2Templ<is_ad>::validParams()
 }
 
 template <bool is_ad>
-EpsmodLubby2Templ<is_ad>::EpsmodLubby2Templ(const InputParameters & parameters)
+modLubby2Templ<is_ad>::modLubby2Templ(const InputParameters & parameters)
   : RadialReturnCreepStressUpdateBaseTempl<is_ad>(parameters),
     _etaM0(this->template getParam<Real>("etaM0")),
     _mvM(this->template getParam<Real>("mvM")),
@@ -46,19 +45,19 @@ EpsmodLubby2Templ<is_ad>::EpsmodLubby2Templ(const InputParameters & parameters)
     _kelvin_creep_rate_old(this->template getMaterialPropertyOld<Real>("kelvin_creep_rate"))
 {
   if (_etaM0 == 0.0 && _etaK0 == 0.0)
-    mooseError("EpsmodLubby2: at least one of the creep should be active.");
+    mooseError("modLubby2: at least one of the creep should be active.");
 }
 
 template <bool is_ad>
 void
-EpsmodLubby2Templ<is_ad>::initQpStatefulProperties()
+modLubby2Templ<is_ad>::initQpStatefulProperties()
 {
   _kelvin_creep_rate[_qp] = 0.0;
 }
 
 template <bool is_ad>
 void
-EpsmodLubby2Templ<is_ad>::propagateQpStatefulProperties()
+modLubby2Templ<is_ad>::propagateQpStatefulProperties()
 {
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp];
   RadialReturnStressUpdateTempl<is_ad>::propagateQpStatefulPropertiesRadialReturn();
@@ -66,7 +65,7 @@ EpsmodLubby2Templ<is_ad>::propagateQpStatefulProperties()
 
 template <bool is_ad>
 void
-EpsmodLubby2Templ<is_ad>::computeStressInitialize(
+modLubby2Templ<is_ad>::computeStressInitialize(
     const GenericReal<is_ad> & effective_trial_stress,
     const GenericRankFourTensor<is_ad> & elasticity_tensor)
 {
@@ -75,7 +74,7 @@ EpsmodLubby2Templ<is_ad>::computeStressInitialize(
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeResidual(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeResidual(const GenericReal<is_ad> & effective_trial_stress,
                                           const GenericReal<is_ad> & scalar)
 {
   if (_etaM0 != 0.0 && _etaK0 != 0.0)
@@ -87,7 +86,7 @@ EpsmodLubby2Templ<is_ad>::computeResidual(const GenericReal<is_ad> & effective_t
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeResidualMK(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeResidualMK(const GenericReal<is_ad> & effective_trial_stress,
                                             const GenericReal<is_ad> & scalar)
 {
   GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
@@ -104,7 +103,7 @@ EpsmodLubby2Templ<is_ad>::computeResidualMK(const GenericReal<is_ad> & effective
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeResidualM(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeResidualM(const GenericReal<is_ad> & effective_trial_stress,
                                            const GenericReal<is_ad> & scalar)
 {
   GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
@@ -116,7 +115,7 @@ EpsmodLubby2Templ<is_ad>::computeResidualM(const GenericReal<is_ad> & effective_
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeResidualK(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeResidualK(const GenericReal<is_ad> & effective_trial_stress,
                                            const GenericReal<is_ad> & scalar)
 {
   GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
@@ -129,7 +128,7 @@ EpsmodLubby2Templ<is_ad>::computeResidualK(const GenericReal<is_ad> & effective_
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
                                             const GenericReal<is_ad> & scalar)
 {
   if (_etaM0 != 0.0 && _etaK0 != 0.0)
@@ -141,7 +140,7 @@ EpsmodLubby2Templ<is_ad>::computeDerivative(const GenericReal<is_ad> & effective
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeDerivativeMK(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeDerivativeMK(const GenericReal<is_ad> & effective_trial_stress,
                                               const GenericReal<is_ad> & scalar)
 {
   const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
@@ -160,7 +159,7 @@ EpsmodLubby2Templ<is_ad>::computeDerivativeMK(const GenericReal<is_ad> & effecti
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeDerivativeM(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeDerivativeM(const GenericReal<is_ad> & effective_trial_stress,
                                              const GenericReal<is_ad> & scalar)
 {
   const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
@@ -173,7 +172,7 @@ EpsmodLubby2Templ<is_ad>::computeDerivativeM(const GenericReal<is_ad> & effectiv
 
 template <bool is_ad>
 GenericReal<is_ad>
-EpsmodLubby2Templ<is_ad>::computeDerivativeK(const GenericReal<is_ad> & effective_trial_stress,
+modLubby2Templ<is_ad>::computeDerivativeK(const GenericReal<is_ad> & effective_trial_stress,
                                              const GenericReal<is_ad> & scalar)
 {
   const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
@@ -187,22 +186,8 @@ EpsmodLubby2Templ<is_ad>::computeDerivativeK(const GenericReal<is_ad> & effectiv
 }
 
 template <bool is_ad>
-Real
-EpsmodLubby2Templ<is_ad>::computeStrainEnergyRateDensity(
-    const GenericMaterialProperty<RankTwoTensor, is_ad> & stress,
-    const GenericMaterialProperty<RankTwoTensor, is_ad> & strain_rate)
-{
-  if (_n_exponent <= 1)
-    return 0.0;
-
-  Real creep_factor = _n_exponent / (_n_exponent + 1);
-
-  return MetaPhysicL::raw_value(creep_factor * stress[_qp].doubleContraction((strain_rate)[_qp]));
-}
-
-template <bool is_ad>
 void
-EpsmodLubby2Templ<is_ad>::computeStressFinalize(
+modLubby2Templ<is_ad>::computeStressFinalize(
     const GenericRankTwoTensor<is_ad> & plastic_strain_increment)
 {
   _creep_strain[_qp] += plastic_strain_increment;
@@ -210,28 +195,17 @@ EpsmodLubby2Templ<is_ad>::computeStressFinalize(
 
 template <bool is_ad>
 void
-EpsmodLubby2Templ<is_ad>::resetIncrementalMaterialProperties()
+modLubby2Templ<is_ad>::resetIncrementalMaterialProperties()
 {
   _creep_strain[_qp] = _creep_strain_old[_qp];
 }
 
 template <bool is_ad>
 bool
-EpsmodLubby2Templ<is_ad>::substeppingCapabilityEnabled()
+modLubby2Templ<is_ad>::substeppingCapabilityEnabled()
 {
   return this->template getParam<bool>("use_substep");
 }
 
-template class EpsmodLubby2Templ<false>;
-template class EpsmodLubby2Templ<true>;
-
-// template Real EpsmodLubby2Templ<false>::computeResidualInternal<Real>(const Real &, const Real
-// &); template ADReal EpsmodLubby2Templ<true>::computeResidualInternal<ADReal>(const ADReal &,
-//                                                                          const ADReal &);
-// template ChainedReal
-// EpsmodLubby2Templ<false>::computeResidualInternal<ChainedReal>(const Real &, const ChainedReal
-// &);
-//
-// template ChainedADReal
-// EpsmodLubby2Templ<true>::computeResidualInternal<ChainedADReal>(const ADReal &,
-//                                                                 const ChainedADReal &);
+template class modLubby2Templ<false>;
+template class modLubby2Templ<true>;
