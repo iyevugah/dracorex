@@ -17,14 +17,11 @@
  */
 
 template <bool is_ad>
-class EpsmodLubby2Templ : public RadialReturnCreepStressUpdateBaseTempl<is_ad>
+class modLubby2Templ : public RadialReturnCreepStressUpdateBaseTempl<is_ad>
 {
 public:
   static InputParameters validParams();
-  EpsmodLubby2Templ(const InputParameters & parameters);
-  virtual Real computeStrainEnergyRateDensity(
-      const GenericMaterialProperty<RankTwoTensor, is_ad> & stress,
-      const GenericMaterialProperty<RankTwoTensor, is_ad> & strain_rate) override;
+  modLubby2Templ(const InputParameters & parameters);
   virtual bool substeppingCapabilityEnabled() override;
   virtual void resetIncrementalMaterialProperties() override;
 
@@ -81,5 +78,5 @@ protected:
   const MaterialProperty<Real> & _kelvin_creep_rate_old;
 };
 
-typedef EpsmodLubby2Templ<false> EpsmodLubby2;
-typedef EpsmodLubby2Templ<true> ADEpsmodLubby2;
+typedef modLubby2Templ<false> modLubby2;
+typedef modLubby2Templ<true> ADmodLubby2;
