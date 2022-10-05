@@ -75,8 +75,7 @@
     type = EpsmodLubby2
     block = 0
     mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
-    etaM0 = 4e7      #2.03e7        
-    n_exponent = 4
+    etaM0 = 4e7      #2.03e7  
     mvK = -3.27e-8
     mk =  -2.54e-8
     etaK0 = 1.66e5
