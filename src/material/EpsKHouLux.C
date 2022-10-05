@@ -80,7 +80,9 @@ EpsKHouLuxTempl<is_ad>::computeResidual(
   const GenericReal<is_ad> etaKMax = _etaK0 * std::exp(_mvK * stress_delta);
   const GenericReal<is_ad> GKMax = _GK0 * std::exp(_mk * stress_delta);
   _effective_creep_increment[_qp] = _effective_creep_increment_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate = (1.0/(2.0 * etaKMax )) * ((stress_delta * std::sqrt(2.0/3.0))-(GKMax*(_effective_creep_increment[_qp] * _dt)*(1.0-_damage_property[_qp])));
+  const GenericReal<is_ad> creep_rate =
+  (stress_delta/((1.0-_damage_property[_qp])* etaKMax)) -
+  ((GKMax*(_effective_creep_increment[_qp]))/ ((std::sqrt(2.0/3.0))* etaKMax));
 
   return creep_rate * _dt - scalar;
 }
@@ -92,8 +94,11 @@ EpsKHouLuxTempl<is_ad>::computeDerivative(
 {
   const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
   const GenericReal<is_ad> etaKMax = _etaK0 * std::exp(_mvK * stress_delta);
+  const GenericReal<is_ad> GKMax = _GK0 * std::exp(_mk * stress_delta);
+  _effective_creep_increment[_qp] = _effective_creep_increment_old[_qp] + scalar;
   const GenericReal<is_ad> creep_rate_derivative =
-      -(std::sqrt(2.0/3.0)) * (_three_shear_modulus/(2.0 * etaKMax));
+      (_three_shear_modulus/etaKMax)* (((stress_delta*_mvK)/(1.0-_damage_property[_qp])) - (1.0/(1.0-_damage_property[_qp])) -
+      ((_effective_creep_increment[_qp]*GKMax*_mvK)/(std::sqrt(2.0/3.0))) - ((_effective_creep_increment[_qp]*GKMax*_mk)/(std::sqrt(2.0/3.0))));
 
   return creep_rate_derivative * _dt - 1.0;
 }
