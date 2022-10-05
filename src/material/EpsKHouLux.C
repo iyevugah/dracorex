@@ -3,8 +3,8 @@
 #include "Function.h"
 #include "ElasticityTensorTools.h"
 
-registerMooseObject("TensorMechanicsApp", ADEpsKHouLux);
-registerMooseObject("TensorMechanicsApp", EpsKHouLux);
+registerMooseObject("dracorexApp", ADEpsKHouLux);
+registerMooseObject("dracorexApp", EpsKHouLux);
 
 template <bool is_ad>
 InputParameters

@@ -1,7 +1,7 @@
 #include "HLdamageEvol.h"
 
-registerMooseObject("TensorMechanicsApp", HLdamageEvol);
-registerMooseObject("TensorMechanicsApp", ADHLdamageEvol);
+registerMooseObject("dracorexApp", HLdamageEvol);
+registerMooseObject("dracorexApp", ADHLdamageEvol);
 
 template <bool is_ad>
 InputParameters

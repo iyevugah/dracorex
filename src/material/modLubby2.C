@@ -9,8 +9,8 @@
 
 #include "modLubby2.h"
 
-registerMooseObject("TensorMechanicsApp", modLubby2);
-registerMooseObject("TensorMechanicsApp", ADmodLubby2);
+registerMooseObject("dracorexApp", modLubby2);
+registerMooseObject("dracorexApp", ADmodLubby2);
 
 template <bool is_ad>
 InputParameters
