@@ -88,7 +88,7 @@ EpsKmodLubby2Templ<is_ad>::computeDerivative(
   const GenericReal<is_ad> etaKMax = _etaK0 * std::exp(_mvK * stress_delta);
   const GenericReal<is_ad> GKMax = _GK0 * std::exp(_mk * stress_delta);
   _effective_creep_increment[_qp] = _effective_creep_increment_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate_derivative = ((_three_shear_modulus * GKMax *_effective_creep_increment[_qp]) / ( etaKMax)) * (_mvK - _mk);
+  const GenericReal<is_ad> creep_rate_derivative = (_three_shear_modulus / (3.0 * etaKMax)) * (1.0 + (_mvK * (stress_delta - (_three_shear_modulus*_effective_creep_increment[_qp]))));
   return creep_rate_derivative * _dt - 1.0;
 }
 
