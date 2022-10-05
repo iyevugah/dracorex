@@ -18,6 +18,7 @@
     incremental = true
     add_variables = true
     generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy'       
+     use_automatic_differentiation = true
   []
 []
 
@@ -38,19 +39,19 @@
     function = top_pull
   []
   [u_bottom_fix]
-    type = DirichletBC
+    type = ADDirichletBC
     variable = disp_y
     boundary = bottom
     value = 0.0
   []
   [u_yz_fix]
-    type = DirichletBC
+    type = ADDirichletBC
     variable = disp_x
     boundary = left
     value = 0.0
   []
   [u_xy_fix]
-    type = DirichletBC
+    type = ADDirichletBC
     variable = disp_z
     boundary = back
     value = 0.0
@@ -59,20 +60,20 @@
 
 [Materials]
   [elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
+    type = ADComputeIsotropicElasticityTensor
     block = 0
     youngs_modulus = 2e11
     poissons_ratio = 0.3
   []
   [radial_return_stress]
-    type = ComputeMultipleInelasticStress
+    type = ADComputeMultipleInelasticStress
      block = 0
     inelastic_models = "Esp_modLubby2"
     tangent_operator = elastic
     combined_inelastic_strain_weights = '1.0'
   []
   [Esp_modLubby2]
-    type = EpsmodLubby2
+    type = ADmodLubby2
     block = 0
     mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
     etaM0 = 4e7      #2.03e7  
