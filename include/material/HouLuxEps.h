@@ -17,11 +17,11 @@
  */
 
 template <bool is_ad>
-class modLubby2Templ : public RadialReturnCreepStressUpdateBaseTempl<is_ad>
+class HouLuxEpsTempl : public RadialReturnCreepStressUpdateBaseTempl<is_ad>
 {
 public:
   static InputParameters validParams();
-  modLubby2Templ(const InputParameters & parameters);
+  HouLuxEpsTempl(const InputParameters & parameters);
   virtual bool substeppingCapabilityEnabled() override;
   virtual void resetIncrementalMaterialProperties() override;
 
@@ -56,6 +56,8 @@ protected:
   const Real _etaM0;
   /// Maxwell viscosity parameter
   const Real _mvM;
+  /// Exponent on the effective stress
+  const Real _n_exponent;
   /// Kelvin ViscoParameter
   const Real _mvK;
   /// Kelvin Elastic Parameter
@@ -64,6 +66,9 @@ protected:
   const Real _etaK0;
   /// Initial Kelvin Shear Modulus
   const Real _GK0;
+
+  ///@{ Material property that provides the damage index
+  const GenericMaterialProperty<Real, is_ad> & _damage_property;
 
   using RadialReturnCreepStressUpdateBaseTempl<is_ad>::_qp;
   using RadialReturnCreepStressUpdateBaseTempl<is_ad>::_dt;
@@ -76,5 +81,5 @@ protected:
   const MaterialProperty<Real> & _kelvin_creep_rate_old;
 };
 
-typedef modLubby2Templ<false> modLubby2;
-typedef modLubby2Templ<true> ADmodLubby2;
+typedef HouLuxEpsTempl<false> HouLuxEps;
+typedef HouLuxEpsTempl<true> ADHouLuxEps;
