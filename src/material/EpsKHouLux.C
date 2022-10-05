@@ -97,8 +97,8 @@ EpsKHouLuxTempl<is_ad>::computeDerivative(
   const GenericReal<is_ad> GKMax = _GK0 * std::exp(_mk * stress_delta);
   _effective_creep_increment[_qp] = _effective_creep_increment_old[_qp] + scalar;
   const GenericReal<is_ad> creep_rate_derivative =
-      (_three_shear_modulus/etaKMax)* (((stress_delta*_mvK)/(1.0-_damage_property[_qp])) - (1.0/(1.0-_damage_property[_qp])) -
-      ((_effective_creep_increment[_qp]*GKMax*_mvK)/(std::sqrt(2.0/3.0))) - ((_effective_creep_increment[_qp]*GKMax*_mk)/(std::sqrt(2.0/3.0))));
+  (_three_shear_modulus/etaKMax)* (((stress_delta*_mvK)/(1.0 -_damage_property[_qp])) - (1.0/(1.0-_damage_property[_qp])) -
+  ((_effective_creep_increment[_qp]*GKMax*_mvK)/(std::sqrt(2.0/3.0)))); //- ((_effective_creep_increment[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
 
   return creep_rate_derivative * _dt - 1.0;
 }

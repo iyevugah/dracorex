@@ -160,8 +160,8 @@ HouLuxEpsTempl<is_ad>::computeDerivativeMK(const GenericReal<is_ad> & effective_
   const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
   const GenericReal<is_ad> K_creep_rate_derivative =
-  (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0-_damage_property[_qp])) - (1.0/(1.0-_damage_property[_qp])) -
-  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0))) - ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))));
+  (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0 -_damage_property[_qp])) - (1.0/(1.0-_damage_property[_qp])) -
+  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0)))); //- ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
 
   return (M_creep_rate_derivative + K_creep_rate_derivative) * _dt - 1.0;
 }
@@ -189,8 +189,8 @@ HouLuxEpsTempl<is_ad>::computeDerivativeK(const GenericReal<is_ad> & effective_t
   const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
   const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate_derivative = (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0-_damage_property[_qp])) - (1.0/(1.0-_damage_property[_qp])) -
-  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0))) - ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))));
+  const GenericReal<is_ad> creep_rate_derivative = (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0 -_damage_property[_qp])) - (1.0/(1.0-_damage_property[_qp])) -
+  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0)))); //- ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
 
   return creep_rate_derivative * _dt - 1.0;
 }
