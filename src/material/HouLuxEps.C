@@ -40,7 +40,6 @@ HouLuxEpsTempl<is_ad>::HouLuxEpsTempl(const InputParameters & parameters)
   : RadialReturnCreepStressUpdateBaseTempl<is_ad>(parameters),
     _etaM0(this->template getParam<Real>("etaM0")),
     _mvM(this->template getParam<Real>("mvM")),
-    _n_exponent(this->template getParam<Real>("n_exponent")),
     _mvK(this->template getParam<Real>("mvK")),
     _mk(this->template getParam<Real>("mk")),
     _etaK0(this->template getParam<Real>("etaK0")),
