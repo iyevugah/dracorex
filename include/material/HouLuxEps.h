@@ -56,8 +56,6 @@ protected:
   const Real _etaM0;
   /// Maxwell viscosity parameter
   const Real _mvM;
-  /// Exponent on the effective stress
-  const Real _n_exponent;
   /// Kelvin ViscoParameter
   const Real _mvK;
   /// Kelvin Elastic Parameter
