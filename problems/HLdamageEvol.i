@@ -12,12 +12,20 @@
   nz = 1
 []
 
+# [Variables]
+#   [temp]
+#     order = FIRST
+#     family = LAGRANGE
+#     initial_condition = 1000.0
+#   []
+# []
+
 [Modules/TensorMechanics/Master]
-   [all]
+  [all]
     strain = FINITE
     incremental = true
-    add_variables = true
-    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy'       
+    add_variables = true 
+    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz damage_property elastic_strain_yy' 
   []
 []
 
@@ -34,7 +42,7 @@
     type = Pressure
     variable = disp_y
     boundary = top
-    factor =  -6.0e6
+    factor = -10.0e6
     function = top_pull
   []
   [u_bottom_fix]
@@ -55,24 +63,40 @@
     boundary = back
     value = 0.0
   []
+  # [temp_fix]
+  #   type = DirichletBC
+  #   variable = temp
+  #   boundary = 'bottom top'
+  #   value = 1000.0
+  # []
 []
 
 [Materials]
+  [damage_index]
+    type = HLdamageEvol
+      a4 = 0.8
+      a5 = 0.55
+      a6 = 67.0
+      a7 = 41.0
+      a8 = 0.25
+      a9 = 1.0
+     a10 = 0.25
+     a15 = 1.67e-8
+     a17 = 5.5
+  []
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
-    block = 0
     youngs_modulus = 2e11
     poissons_ratio = 0.3
   []
   [radial_return_stress]
     type = ComputeMultipleInelasticStress
-     block = 0
-    inelastic_models = "Esp_modLubby2"
+    inelastic_models = 'HouLux_Eps'
     tangent_operator = elastic
-    combined_inelastic_strain_weights = '1.0'
   []
-  [Esp_modLubby2]
-    type = modLubby2
+  [HouLux_Eps]
+    type = HouLuxEps
+    damage_index = damage_index_val
     block = 0
     mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
     etaM0 = 4e7      #2.03e7  
@@ -111,12 +135,7 @@
     point = '1 1 1'
     variable = elastic_strain_yy
   []
-    [stressYY]
-    type = PointValue
-    point = '1 1 1'
-    variable = stress_yy
-  []
-     [creep_strainXX]
+    [creep_strainXX]
     type = PointValue
     point = '1 1 1'
     variable = creep_strain_xx
@@ -130,6 +149,15 @@
     type = PointValue
     point = '1 1 1'
     variable = creep_strain_zz
+  []
+    [stressYY]
+    type = PointValue
+    point = '1 1 1'
+    variable = stress_yy
+  []
+    [damage_index]
+    type = ElementAverageValue
+    variable = damage_property
   []
 []
 
