@@ -29,9 +29,12 @@ protected:
   virtual void initQpStatefulProperties() override;
   virtual void propagateQpStatefulProperties() override;
 
+
   virtual void
-  computeStressInitialize(const GenericReal<is_ad> & effective_trial_stress,
-                          const GenericRankFourTensor<is_ad> & elasticity_tensor) override;
+  computeStressInitialize(const GenericReal<is_ad> & /*effective_trial_stress*/,
+                          const GenericRankFourTensor<is_ad> & /*elasticity_tensor*/,
+                          RankTwoTensor & stress_new,
+                          const RankTwoTensor deviatoric_stress);
   virtual void
   computeStressFinalize(const GenericRankTwoTensor<is_ad> & plastic_strain_increment) override;
 
@@ -52,6 +55,18 @@ protected:
                                                 const GenericReal<is_ad> & scalar);
   virtual GenericReal<is_ad> computeDerivativeMK(const GenericReal<is_ad> & effective_trial_stress,
                                                  const GenericReal<is_ad> & scalar);
+
+   /**
+   * Damage parameter updated according to
+   * equation (20) in:
+   * Mechanical and hydraulic behavior of rock salt in the excavation
+   * disturbed zone around underground facilities.
+   * Hou (2003)
+   */
+   virtual GenericReal<is_ad> updateDamageParam (const GenericReal<is_ad> & effective_trial_stress,
+                                             const GenericReal<is_ad> & scalar);
+
+
   /// Maxwell initial viscosity
   const Real _etaM0;
   /// Maxwell viscosity parameter
@@ -65,8 +80,24 @@ protected:
   /// Initial Kelvin Shear Modulus
   const Real _GK0;
 
-  ///@{ Material property that provides the damage index
-  const GenericMaterialProperty<Real, is_ad> & _damage_property;
+  GenericMaterialProperty<Real, is_ad> & _damage_param;
+  const MaterialProperty<Real> & _damage_param_old;
+
+  // model params
+    Real _a4;
+    Real _a5;
+    Real _a6;
+    Real _a7;
+    Real _a8;
+    Real _a9;
+    Real _a10;
+    Real _a15;
+    Real _a17;
+
+  // 3rd deviatoric stress invariant and the min. principal stress
+    Real J3_sig;
+    Real smin;
+
 
   using RadialReturnCreepStressUpdateBaseTempl<is_ad>::_qp;
   using RadialReturnCreepStressUpdateBaseTempl<is_ad>::_dt;
