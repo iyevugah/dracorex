@@ -25,7 +25,7 @@
     strain = FINITE
     incremental = true
     add_variables = true 
-    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz damage_property elastic_strain_yy' 
+    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy' 
   []
 []
 
@@ -72,18 +72,6 @@
 []
 
 [Materials]
-  [damage_index]
-    type = HLdamageEvol
-      a4 = 0.8
-      a5 = 0.55
-      a6 = 67.0
-      a7 = 41.0
-      a8 = 0.25
-      a9 = 1.0
-     a10 = 0.25
-     a15 = 1.67e-8
-     a17 = 5.5
-  []
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
     youngs_modulus = 2e11
@@ -93,17 +81,25 @@
     type = ComputeMultipleInelasticStress
     inelastic_models = 'HouLux_Eps'
     tangent_operator = elastic
+    combined_inelastic_strain_weights = '1.0'
   []
   [HouLux_Eps]
     type = HouLuxEps
-    damage_index = damage_index_val
-    block = 0
     mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
     etaM0 = 4e7      #2.03e7  
     mvK = -3.27e-8
     mk =  -2.54e-8
     etaK0 = 1.66e5
     GK0 = 6.27e4
+      a4 = 0.8
+      a5 = 0.55
+      a6 = 67.0
+      a7 = 41.0
+      a8 = 0.25
+      a9 = 1.0
+     a10 = 0.25
+     a15 = 1.67e-8
+     a17 = 5.5
   []
 []
 
@@ -155,10 +151,10 @@
     point = '1 1 1'
     variable = stress_yy
   []
-    [damage_index]
-    type = ElementAverageValue
-    variable = damage_property
-  []
+ # [damage_strainYY]
+ #  type = PointValue
+ # variable = damage_property
+ # []
 []
 
 [Outputs]
