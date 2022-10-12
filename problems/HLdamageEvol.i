@@ -25,7 +25,7 @@
     strain = FINITE
     incremental = true
     add_variables = true 
-    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy' 
+    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy damage_param' 
   []
 []
 
@@ -151,10 +151,10 @@
     point = '1 1 1'
     variable = stress_yy
   []
- # [damage_strainYY]
- #  type = PointValue
- # variable = damage_property
- # []
+  [damage_evol]
+   type = PointValue
+   variable = damage_param
+  []
 []
 
 [Outputs]

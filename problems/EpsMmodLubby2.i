@@ -18,7 +18,7 @@
     incremental = true
     add_variables = true
     generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy'       
-    use_automatic_differentiation = true
+    use_automatic_differentiation = false
   []
 []
 
@@ -39,19 +39,19 @@
     function = top_pull
   []
   [u_bottom_fix]
-    type = ADDirichletBC
+    type = DirichletBC
     variable = disp_y
     boundary = bottom
     value = 0.0
   []
   [u_yz_fix]
-    type = ADDirichletBC
+    type = DirichletBC
     variable = disp_x
     boundary = left
     value = 0.0
   []
   [u_xy_fix]
-    type = ADDirichletBC
+    type = DirichletBC
     variable = disp_z
     boundary = back
     value = 0.0
@@ -60,28 +60,23 @@
 
 [Materials]
   [elasticity_tensor]
-    type = ADComputeIsotropicElasticityTensor
+    type = ComputeIsotropicElasticityTensor
     block = 0
     youngs_modulus = 2e11
     poissons_ratio = 0.3
   []
   [radial_return_stress]
-    type = ADComputeMultipleInelasticStress
+    type = ComputeMultipleInelasticStress
      block = 0
-    inelastic_models = "AD_modLubby2"
+    inelastic_models = "EpsM_modLubby2"
     tangent_operator = elastic
     combined_inelastic_strain_weights = '1.0'
   []
-  [AD_modLubby2]
-    type = ADmodLubby2
-    effective_inelastic_strain_name = Kelvin_creep_rate
+  [EpsM_modLubby2]
+    type = EpsMmodLubby2
     block = 0
     mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
-    etaM0 = 4e7      #2.03e7  
-    mvK = -3.27e-8
-    mk =  -2.54e-8
-    etaK0 = 1.66e5
-    GK0 = 6.27e4
+    etaM0 = 4e7      #2.03e7 
   []
 []
 

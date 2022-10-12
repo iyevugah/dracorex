@@ -68,20 +68,15 @@
   [radial_return_stress]
     type = ADComputeMultipleInelasticStress
      block = 0
-    inelastic_models = "AD_modLubby2"
+    inelastic_models = "AD_EpsMmodLubby2"
     tangent_operator = elastic
     combined_inelastic_strain_weights = '1.0'
   []
-  [AD_modLubby2]
-    type = ADmodLubby2
-    effective_inelastic_strain_name = Kelvin_creep_rate
+  [AD_EpsMmodLubby2]
+    type = ADEpsMmodLubby2
     block = 0
     mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
-    etaM0 = 4e7      #2.03e7  
-    mvK = -3.27e-8
-    mk =  -2.54e-8
-    etaK0 = 1.66e5
-    GK0 = 6.27e4
+    etaM0 = 4e7      #2.03e7 
   []
 []
 
