@@ -53,8 +53,10 @@ HouLuxEpsTempl<is_ad>::HouLuxEpsTempl(const InputParameters & parameters)
     _kelvin_creep_rate(this->template declareGenericProperty<Real, is_ad>("kelvin_creep_rate")),
     _kelvin_creep_rate_old(this->template getMaterialPropertyOld<Real>("kelvin_creep_rate")),
     // damage parameter
-    _damage_param(this->template declareGenericProperty<Real, is_ad>("damage_param")), // scalar damage parameter
-    _damage_param_old(this->template getMaterialPropertyOld<Real>("damage_param")), // damage param at previous time step
+//    _damage_param(this->template declareGenericProperty<Real, is_ad>("damage_param")), // scalar damage parameter
+//    _damage_param_old(this->template getMaterialPropertyOld<Real>("damage_param")), // damage param at previous time step
+    _damage_param(this->template declareGenericProperty<Real, is_ad>(this->_base_name +"damage_param")),
+    _damage_param_old(this->template getMaterialPropertyOld<Real>(this->_base_name + "damage_param")),
     // Model Params
     _a4 (this->template getParam<Real>("a4")),
     _a5 (this->template getParam<Real>("a5")),
@@ -103,7 +105,7 @@ HouLuxEpsTempl<is_ad>::computeStressInitialize(const GenericReal<is_ad> & /*effe
 
 /// Damage evolution
 template <bool is_ad>
-GenericReal<is_ad>
+void
 HouLuxEpsTempl<is_ad>::updateDamageParam(const GenericReal<is_ad> & effective_trial_stress,
                                           const GenericReal<is_ad> & scalar)
 {
@@ -119,129 +121,82 @@ HouLuxEpsTempl<is_ad>::updateDamageParam(const GenericReal<is_ad> & effective_tr
   const GenericReal<is_ad> F_dz = 6.0 * (-smin);
   _damage_param[_qp] = _damage_param_old[_qp];
   const GenericReal<is_ad> damage_rate = (_a15/(1.0-(_damage_param[_qp]))) * (F_ds + F_dz);
-  return _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;
+  _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;
 }
 
 
+/// Compute the Residuals when automatic_differentiation = false
 template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeResidual(const GenericReal<is_ad> & effective_trial_stress,
-                                          const GenericReal<is_ad> & scalar)
+template <typename ScalarType>
+ScalarType
+HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effective_trial_stress,
+                                                 const ScalarType & scalar)
 {
+  const ScalarType stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
+  const ScalarType etaM = _etaM0 * std::exp(_mvM * stress_delta);
+  const ScalarType etaK = _etaK0 * std::exp(_mvK * stress_delta);
+  const ScalarType GK = _GK0 * std::exp(_mk * stress_delta);
+  _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
+
   if (_etaM0 != 0.0 && _etaK0 != 0.0)
-    return computeResidualMK(effective_trial_stress, scalar);
-  else if (_etaM0 != 0.0 && _etaK0 == 0.0)
-    return computeResidualM(effective_trial_stress, scalar);
-  return computeResidualK(effective_trial_stress, scalar);
-}
+  {
+    // Maxwell and Kelvin
+  const ScalarType M_creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
+  const ScalarType K_creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
+                                   ((GK*(_kelvin_creep_rate[_qp]))/ ((std::sqrt(2.0/3.0))* etaK));
+return (M_creep_rate + K_creep_rate) * _dt - scalar;
+   }
 
-template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeResidualMK(const GenericReal<is_ad> & effective_trial_stress,
-                                            const GenericReal<is_ad> & scalar)
-{
-  GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  // Maxwell
-  const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * stress_delta);
-  const GenericReal<is_ad> M_creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
-  // Kelvin
-  const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
-  _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
-  ((GK*(_kelvin_creep_rate[_qp]))/ ((std::sqrt(2.0/3.0))* etaK));
-  return creep_rate * _dt - scalar;
-}
+   else if (_etaM0 != 0.0 && _etaK0 == 0.0)
+ // Maxwell
+ {
+   const ScalarType creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
+return creep_rate * _dt - scalar;
+ }
+ // Kelvin
+  const ScalarType creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
+                                ((GK*(_kelvin_creep_rate[_qp]))/ ((std::sqrt(2.0/3.0))* etaK));
+ return creep_rate * _dt - scalar;
+ }
 
-template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeResidualM(const GenericReal<is_ad> & effective_trial_stress,
-                                           const GenericReal<is_ad> & scalar)
-{
-  GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  // Maxwell
-  const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * stress_delta);
-  const GenericReal<is_ad> creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
-  return creep_rate * _dt - scalar;
-}
 
-template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeResidualK(const GenericReal<is_ad> & effective_trial_stress,
-                                           const GenericReal<is_ad> & scalar)
-{
-  GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  //Kelvin
-  const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
-  _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
-  ((GK*(_kelvin_creep_rate[_qp]))/ ((std::sqrt(2.0/3.0))* etaK));
-  return creep_rate * _dt - scalar;
-}
 
-template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
-                                            const GenericReal<is_ad> & scalar)
-{
-  if (_etaM0 != 0.0 && _etaK0 != 0.0)
-    return computeDerivativeMK(effective_trial_stress, scalar);
-  else if (_etaM0 != 0.0 && _etaK0 == 0.0)
-    return computeDerivativeM(effective_trial_stress, scalar);
-  return computeDerivativeK(effective_trial_stress, scalar);
-}
-
-template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeDerivativeMK(const GenericReal<is_ad> & effective_trial_stress,
-                                              const GenericReal<is_ad> & scalar)
-{
-  const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  // Maxwell
-  const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * effective_trial_stress);
-  const GenericReal<is_ad> M_creep_rate_derivative =
-      (_three_shear_modulus/((1.0 -_damage_param[_qp]) * etaM)) * ((stress_delta*_mvM)-1);
-  // Kelvin
-  const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
-  _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> K_creep_rate_derivative =
-  (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0 -_damage_param[_qp])) - (1.0/(1.0-_damage_param[_qp])) -
-  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0)))); //+ ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
-
-  return (M_creep_rate_derivative + K_creep_rate_derivative) * _dt - 1.0;
-}
-
-template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeDerivativeM(const GenericReal<is_ad> & effective_trial_stress,
+ /// Compute the Derivatives when automatic_differentiation = false
+ template <bool is_ad>
+ GenericReal<is_ad>
+ HouLuxEpsTempl<is_ad>::computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
                                              const GenericReal<is_ad> & scalar)
+ {
+   const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
+   const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * effective_trial_stress);
+   const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
+   const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
+   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
+
+   if (_etaM0 != 0.0 && _etaK0 != 0.0)
+   {
+     const GenericReal<is_ad> M_creep_rate_derivative =
+       (_three_shear_modulus/((1.0 -_damage_param[_qp]) * etaM)) * ((stress_delta*_mvM)-1);
+   const GenericReal<is_ad> K_creep_rate_derivative =
+   (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0 -_damage_param[_qp])) - (1.0/(1.0-_damage_param[_qp])) -
+   ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0)))); //+ ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
+ return (M_creep_rate_derivative + K_creep_rate_derivative) * _dt - 1.0;
+  }
+
+    else if (_etaM0 != 0.0 && _etaK0 == 0.0)
 {
-  const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  //Maxwell
-  const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * stress_delta);
   const GenericReal<is_ad> creep_rate_derivative =
-      (_three_shear_modulus/((1.0-_damage_param[_qp]) * etaM)) * ((stress_delta*_mvM)-1);
-
+        (_three_shear_modulus/((1.0 -_damage_param[_qp]) * etaM)) * ((stress_delta*_mvM)-1);
   return creep_rate_derivative * _dt - 1.0;
+ }
+
+ const GenericReal<is_ad> creep_rate_derivative =
+ (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0 -_damage_param[_qp])) - (1.0/(1.0-_damage_param[_qp])) -
+ ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0)))); //+ ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
+return creep_rate_derivative * _dt - 1.0;
 }
 
-template <bool is_ad>
-GenericReal<is_ad>
-HouLuxEpsTempl<is_ad>::computeDerivativeK(const GenericReal<is_ad> & effective_trial_stress,
-                                             const GenericReal<is_ad> & scalar)
-{
-  const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  // Kelvin
-  const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
-  _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate_derivative = (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0 -_damage_param[_qp])) - (1.0/(1.0-_damage_param[_qp])) -
-  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0)))); //+ ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
 
-  return creep_rate_derivative * _dt - 1.0;
-}
 
 template <bool is_ad>
 void
@@ -267,3 +222,12 @@ HouLuxEpsTempl<is_ad>::substeppingCapabilityEnabled()
 
 template class HouLuxEpsTempl<false>;
 template class HouLuxEpsTempl<true>;
+
+template Real HouLuxEpsTempl<false>::computeResidualInternal<Real>(const Real &, const Real &);
+template ADReal HouLuxEpsTempl<true>::computeResidualInternal<ADReal>(const ADReal &,
+                                                                     const ADReal &);
+template ChainedReal
+HouLuxEpsTempl<false>::computeResidualInternal<ChainedReal>(const Real &, const ChainedReal &);
+
+template ChainedADReal
+HouLuxEpsTempl<true>::computeResidualInternal<ChainedADReal>(const ADReal &, const ChainedADReal &);

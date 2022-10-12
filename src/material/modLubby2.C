@@ -71,118 +71,73 @@ modLubby2Templ<is_ad>::computeStressInitialize(
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp];
 }
 
-template <bool is_ad>
-GenericReal<is_ad>
-modLubby2Templ<is_ad>::computeResidual(const GenericReal<is_ad> & effective_trial_stress,
-                                          const GenericReal<is_ad> & scalar)
-{
-  if (_etaM0 != 0.0 && _etaK0 != 0.0)
-    return computeResidualMK(effective_trial_stress, scalar);
-  else if (_etaM0 != 0.0 && _etaK0 == 0.0)
-    return computeResidualM(effective_trial_stress, scalar);
-  return computeResidualK(effective_trial_stress, scalar);
-}
+
+/// Compute the Residuals when automatic_differentiation = false
 
 template <bool is_ad>
-GenericReal<is_ad>
-modLubby2Templ<is_ad>::computeResidualMK(const GenericReal<is_ad> & effective_trial_stress,
-                                            const GenericReal<is_ad> & scalar)
+template <typename ScalarType>
+ScalarType
+modLubby2Templ<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effective_trial_stress,
+                                                 const ScalarType & scalar)
 {
-  GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
+  const ScalarType stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
+  const ScalarType etaM = _etaM0 * std::exp(_mvM * stress_delta);
+  const ScalarType etaK = _etaK0 * std::exp(_mvK * stress_delta);
+  const ScalarType GK = _GK0 * std::exp(_mk * stress_delta);
+   _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
+
+    if (_etaM0 != 0.0 && _etaK0 != 0.0)
+  {
+    // Maxwell and Kelvin
+  const ScalarType M_creep_rate = stress_delta / (3.0 * etaM);
+  const ScalarType K_creep_rate = stress_delta / (3.0 * etaK) - (_three_shear_modulus*_kelvin_creep_rate[_qp])/(3.0*etaK);
+return (M_creep_rate + K_creep_rate) * _dt - scalar;
+   }
+    else if (_etaM0 != 0.0 && _etaK0 == 0.0)
   // Maxwell
-  const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * stress_delta);
-  const GenericReal<is_ad> M_creep_rate = stress_delta / (3.0 * etaM);
+  {
+    const ScalarType creep_rate = stress_delta / (3.0 * etaM);
+return creep_rate * _dt - scalar;
+  }
   // Kelvin
-  const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
-  _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate = stress_delta / (3.0 * etaK) - (_three_shear_modulus*_kelvin_creep_rate[_qp])/(3.0*etaK);
-  return creep_rate * _dt - scalar;
+   const ScalarType creep_rate = stress_delta / (3.0 * etaK) - (_three_shear_modulus*_kelvin_creep_rate[_qp])/(3.0*etaK);
+ return creep_rate * _dt - scalar;
 }
 
-template <bool is_ad>
-GenericReal<is_ad>
-modLubby2Templ<is_ad>::computeResidualM(const GenericReal<is_ad> & effective_trial_stress,
-                                           const GenericReal<is_ad> & scalar)
-{
-  GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  // Maxwell
-  const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * stress_delta);
-  const GenericReal<is_ad> creep_rate = stress_delta / (3.0 * etaM);
-  return creep_rate * _dt - scalar;
-}
 
-template <bool is_ad>
-GenericReal<is_ad>
-modLubby2Templ<is_ad>::computeResidualK(const GenericReal<is_ad> & effective_trial_stress,
-                                           const GenericReal<is_ad> & scalar)
-{
-  GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
-  _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate = stress_delta / (3.0 * etaK) - (_three_shear_modulus*_kelvin_creep_rate[_qp])/(3.0*etaK);
-  return creep_rate * _dt - scalar;
-}
+/// Compute the Derivatives when automatic_differentiation = false
 
 template <bool is_ad>
 GenericReal<is_ad>
 modLubby2Templ<is_ad>::computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
                                             const GenericReal<is_ad> & scalar)
 {
-  if (_etaM0 != 0.0 && _etaK0 != 0.0)
-    return computeDerivativeMK(effective_trial_stress, scalar);
-  else if (_etaM0 != 0.0 && _etaK0 == 0.0)
-    return computeDerivativeM(effective_trial_stress, scalar);
-  return computeDerivativeK(effective_trial_stress, scalar);
-}
-
-template <bool is_ad>
-GenericReal<is_ad>
-modLubby2Templ<is_ad>::computeDerivativeMK(const GenericReal<is_ad> & effective_trial_stress,
-                                              const GenericReal<is_ad> & scalar)
-{
   const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  // Maxwell
   const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * effective_trial_stress);
-  const GenericReal<is_ad> M_creep_rate_derivative =
-      _three_shear_modulus / (3.0 * etaM) * (1.0 + _mvM * stress_delta);
-  // Kelvin
   const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
+  const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
+
+  if (_etaM0 != 0.0 && _etaK0 != 0.0)
+  {
+    const GenericReal<is_ad> M_creep_rate_derivative =
+      _three_shear_modulus / (3.0 * etaM) * (1.0 + _mvM * stress_delta);
   const GenericReal<is_ad> K_creep_rate_derivative =
       (_three_shear_modulus / (3.0 * etaK)) * (1.0 + (_mvK * (stress_delta - (_three_shear_modulus*_kelvin_creep_rate[_qp]))));
-
-  return (M_creep_rate_derivative + K_creep_rate_derivative) * _dt - 1.0;
-}
-
-template <bool is_ad>
-GenericReal<is_ad>
-modLubby2Templ<is_ad>::computeDerivativeM(const GenericReal<is_ad> & effective_trial_stress,
-                                             const GenericReal<is_ad> & scalar)
-{
-  const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * stress_delta);
+return (M_creep_rate_derivative + K_creep_rate_derivative) * _dt - 1.0;
+  }
+      else if (_etaM0 != 0.0 && _etaK0 == 0.0)
+  {
+    const GenericReal<is_ad> creep_rate_derivative =
+          _three_shear_modulus / (3.0 * etaM) * (1.0 + _mvM * stress_delta);
+    return creep_rate_derivative * _dt - 1.0;
+   }
   const GenericReal<is_ad> creep_rate_derivative =
-      _three_shear_modulus / (3.0 * etaM) * (1.0 + _mvM * stress_delta);
-
-  return creep_rate_derivative * _dt - 1.0;
+        (_three_shear_modulus / (3.0 * etaK)) * (1.0 + (_mvK * (stress_delta - (_three_shear_modulus*GK*_kelvin_creep_rate[_qp]))));
+ return creep_rate_derivative * _dt - 1.0;
 }
 
-template <bool is_ad>
-GenericReal<is_ad>
-modLubby2Templ<is_ad>::computeDerivativeK(const GenericReal<is_ad> & effective_trial_stress,
-                                             const GenericReal<is_ad> & scalar)
-{
-  const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
-  // Kelvin
-  const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
-  const GenericReal<is_ad> creep_rate_derivative =
-      (_three_shear_modulus / (3.0 * etaK)) * (1.0 + (_mvK * (stress_delta - (_three_shear_modulus*_kelvin_creep_rate[_qp]))));
 
-  return creep_rate_derivative * _dt - 1.0;
-}
 
 template <bool is_ad>
 void
@@ -208,3 +163,12 @@ modLubby2Templ<is_ad>::substeppingCapabilityEnabled()
 
 template class modLubby2Templ<false>;
 template class modLubby2Templ<true>;
+
+template Real modLubby2Templ<false>::computeResidualInternal<Real>(const Real &, const Real &);
+template ADReal modLubby2Templ<true>::computeResidualInternal<ADReal>(const ADReal &,
+                                                                     const ADReal &);
+template ChainedReal
+modLubby2Templ<false>::computeResidualInternal<ChainedReal>(const Real &, const ChainedReal &);
+
+template ChainedADReal
+modLubby2Templ<true>::computeResidualInternal<ChainedADReal>(const ADReal &, const ChainedADReal &);
