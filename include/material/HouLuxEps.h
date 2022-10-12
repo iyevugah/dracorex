@@ -38,34 +38,44 @@ protected:
   virtual void
   computeStressFinalize(const GenericRankTwoTensor<is_ad> & plastic_strain_increment) override;
 
-  virtual GenericReal<is_ad> computeResidual(const GenericReal<is_ad> & effective_trial_stress,
-                                             const GenericReal<is_ad> & scalar) override;
-  virtual GenericReal<is_ad> computeResidualM(const GenericReal<is_ad> & effective_trial_stress,
-                                              const GenericReal<is_ad> & scalar);
-  virtual GenericReal<is_ad> computeResidualK(const GenericReal<is_ad> & effective_trial_stress,
-                                              const GenericReal<is_ad> & scalar);
-  virtual GenericReal<is_ad> computeResidualMK(const GenericReal<is_ad> & effective_trial_stress,
-                                               const GenericReal<is_ad> & scalar);
+  //Declare residuals when automatic_differentiation = false
 
-  virtual GenericReal<is_ad> computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
+  virtual GenericReal<is_ad>
+  computeResidual(const GenericReal<is_ad> & effective_trial_stress,
+                                             const GenericReal<is_ad> & scalar) override
+  {
+    return computeResidualInternal<GenericReal<is_ad>>(effective_trial_stress, scalar);
+  }
+
+  /// Declare Derivatives when automatic_differentiation = false
+  virtual GenericReal<is_ad>
+  computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
                                                const GenericReal<is_ad> & scalar) override;
-  virtual GenericReal<is_ad> computeDerivativeM(const GenericReal<is_ad> & effective_trial_stress,
-                                                const GenericReal<is_ad> & scalar);
-  virtual GenericReal<is_ad> computeDerivativeK(const GenericReal<is_ad> & effective_trial_stress,
-                                                const GenericReal<is_ad> & scalar);
-  virtual GenericReal<is_ad> computeDerivativeMK(const GenericReal<is_ad> & effective_trial_stress,
-                                                 const GenericReal<is_ad> & scalar);
+
+  /// Declare computeResidual And Derivatives for automatic_differentiation:
+  virtual GenericChainedReal<is_ad>
+  computeResidualAndDerivative(const GenericReal<is_ad> & effective_trial_stress,
+                              const GenericChainedReal<is_ad> & scalar) override
+  {
+  return computeResidualInternal<GenericChainedReal<is_ad>>(effective_trial_stress, scalar);
+  }
+
+
 
    /**
-   * Damage parameter updated according to
-   * equation (20) in:
+   * Damage parameter updated according to equation (20) in:
    * Mechanical and hydraulic behavior of rock salt in the excavation
    * disturbed zone around underground facilities.
    * Hou (2003)
    */
-   virtual GenericReal<is_ad> updateDamageParam (const GenericReal<is_ad> & effective_trial_stress,
+
+   virtual void
+   updateDamageParam (const GenericReal<is_ad> & effective_trial_stress,
                                              const GenericReal<is_ad> & scalar);
 
+  /// Declare damage parameters: new and old
+    GenericMaterialProperty<Real, is_ad> & _damage_param;
+    const MaterialProperty<Real> & _damage_param_old;
 
   /// Maxwell initial viscosity
   const Real _etaM0;
@@ -80,8 +90,10 @@ protected:
   /// Initial Kelvin Shear Modulus
   const Real _GK0;
 
-  GenericMaterialProperty<Real, is_ad> & _damage_param;
-  const MaterialProperty<Real> & _damage_param_old;
+  /// Declare scalar effective kelvin strain rate
+  GenericMaterialProperty<Real, is_ad> & _kelvin_creep_rate;
+  const MaterialProperty<Real> & _kelvin_creep_rate_old;
+
 
   // model params
     Real _a4;
@@ -106,8 +118,12 @@ protected:
   using RadialReturnCreepStressUpdateBaseTempl<is_ad>::_creep_strain;
   using RadialReturnCreepStressUpdateBaseTempl<is_ad>::_creep_strain_old;
 
-  GenericMaterialProperty<Real, is_ad> & _kelvin_creep_rate;
-  const MaterialProperty<Real> & _kelvin_creep_rate_old;
+private:
+
+template <typename ScalarType>
+  ScalarType computeResidualInternal(const GenericReal<is_ad> & effective_trial_stress,
+                                     const ScalarType & scalar);
+
 };
 
 typedef HouLuxEpsTempl<false> HouLuxEps;
