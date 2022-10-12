@@ -20,12 +20,29 @@
 #   []
 # []
 
+[AuxVariables]
+  [damage_param]
+    order = CONSTANT
+    family = MONOMIAL
+  []
+[]
+
+[AuxKernels]
+  [damage_evol]
+    type = MaterialRealAux
+    variable = damage_param
+    property = damage_param
+    execute_on = 'initial timestep_end'
+  []
+[]
+
+
 [Modules/TensorMechanics/Master]
   [all]
     strain = FINITE
     incremental = true
     add_variables = true 
-    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy damage_param' 
+    generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy' 
   []
 []
 
@@ -153,6 +170,7 @@
   []
   [damage_evol]
    type = PointValue
+   point = '1 1 1'
    variable = damage_param
   []
 []
