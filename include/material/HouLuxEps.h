@@ -69,9 +69,9 @@ protected:
    * Hou (2003)
    */
 
-   virtual void
-   updateDamageParam (const GenericReal<is_ad> & effective_trial_stress,
-                                             const GenericReal<is_ad> & scalar);
+   //virtual GenericReal<is_ad>
+   //updateDamageParam (const GenericReal<is_ad> & effective_trial_stress,
+    //                                         const GenericReal<is_ad> & scalar);
 
   /// Declare damage parameters: new and old
     GenericMaterialProperty<Real, is_ad> & _damage_param;
