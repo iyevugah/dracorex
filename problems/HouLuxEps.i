@@ -12,26 +12,28 @@
   nz = 1
 []
 
-# [Variables]
-#   [temp]
-#     order = FIRST
-#     family = LAGRANGE
-#     initial_condition = 1000.0
-#   []
-# []
-
 [AuxVariables]
   [damage_param]
+    order = CONSTANT
+    family = MONOMIAL
+  []
+   [kelvin_creep_rate]
     order = CONSTANT
     family = MONOMIAL
   []
 []
 
 [AuxKernels]
-  [damage_evol]
+   [damage_evol]
     type = MaterialRealAux
     variable = damage_param
     property = damage_param
+    execute_on = 'initial timestep_end'
+  []
+    [kelvin_creep_rate_evol]
+    type = MaterialRealAux
+    variable = kelvin_creep_rate
+    property = kelvin_creep_rate
     execute_on = 'initial timestep_end'
   []
 []
@@ -39,7 +41,7 @@
 
 [Modules/TensorMechanics/Master]
   [all]
-    strain = FINITE
+    strain = SMALL
     incremental = true
     add_variables = true 
     generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy' 
@@ -80,19 +82,14 @@
     boundary = back
     value = 0.0
   []
-  # [temp_fix]
-  #   type = DirichletBC
-  #   variable = temp
-  #   boundary = 'bottom top'
-  #   value = 1000.0
-  # []
 []
+
 
 [Materials]
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 2e11
-    poissons_ratio = 0.3
+    youngs_modulus = 2e10     # 2e11
+    poissons_ratio = 0.3      # 0.3
   []
   [radial_return_stress]
     type = ComputeMultipleInelasticStress
@@ -102,21 +99,22 @@
   []
   [HouLux_Eps]
     type = HouLuxEps
-    mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
-    etaM0 = 4e7      #2.03e7  
-    mvK = -3.27e-8
-    mk =  -2.54e-8
-    etaK0 = 1.66e5
-    GK0 = 6.27e4
-      a4 = 0.8
-      a5 = 0.55
+    mvM =  -2.47e-6             #-2.67e-8  1.9e-6     I scaled the model parameter by e-7 
+    etaM0 = 2.03e7           # 4e7      2.03e7  
+    mvK =   -1.68e-6            # -3.27e-8
+    mk =    -1.91e-6           # -2.54e-8
+    etaK0 =  8.94e3            # 1.66e5
+    GK0 =    5.08e5          # 6.27e4
+      a4 = 0.3
+      a5 = 0.05
       a6 = 67.0
       a7 = 41.0
       a8 = 0.25
       a9 = 1.0
      a10 = 0.25
-     a15 = 1.67e-8
-     a17 = 5.5
+     a15 = 1.67e-1
+     a16 = 1.0e8
+     a17 = 3.5e-8
   []
 []
 
@@ -137,9 +135,9 @@
   nl_abs_tol = 1e-6
   l_tol = 1e-5
   start_time = 0.0
-  end_time = 1.0
-  num_steps = 10
-  dt = 0.1
+  end_time = 100.0
+  num_steps = 100
+  dt = 0.001
 []
 
 [Postprocessors]
@@ -172,6 +170,11 @@
    type = PointValue
    point = '1 1 1'
    variable = damage_param
+  []
+  [scalar_Kelvin_strain_rate]
+   type = PointValue
+   point = '1 1 1'
+   variable = kelvin_creep_rate
   []
 []
 
