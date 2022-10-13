@@ -104,6 +104,7 @@ protected:
     Real _a9;
     Real _a10;
     Real _a15;
+    Real _a16;
     Real _a17;
 
   // 3rd deviatoric stress invariant and the min. principal stress

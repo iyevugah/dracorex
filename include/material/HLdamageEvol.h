@@ -23,7 +23,7 @@ public:
 
 protected:
   virtual void
-  computeStressInitialize(const GenericReal<is_ad> & /*effective_trial_stress*/,
+computeStressInitialize(const GenericReal<is_ad> & /*effective_trial_stress*/,
                           const GenericRankFourTensor<is_ad> & /*elasticity_tensor*/,
                           RankTwoTensor & stress_new,
                           const RankTwoTensor deviatoric_stress);
