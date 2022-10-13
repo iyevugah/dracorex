@@ -37,6 +37,7 @@ HouLuxEpsTempl<is_ad>::validParams()
   params.addRequiredParam<Real>("a9", "model parameter 9");
   params.addRequiredParam<Real>("a10", "model paramete 10");
   params.addRequiredParam<Real>("a15", "model paramete 15");
+  params.addRequiredParam<Real>("a15", "model paramete 16");
   params.addRequiredParam<Real>("a17", "model paramete 17");
   return params;
 }
@@ -66,7 +67,8 @@ HouLuxEpsTempl<is_ad>::HouLuxEpsTempl(const InputParameters & parameters)
     _a9 (this->template getParam<Real>("a9")),
     _a10 (this->template getParam<Real>("a10")),
     _a15 (this->template getParam<Real>("a15")),
-   _a17 (this->template getParam<Real>("a17"))
+    _a16 (this->template getParam<Real>("a15")),
+    _a17 (this->template getParam<Real>("a17"))
 {
   if (_etaM0 == 0.0 && _etaK0 == 0.0)
     mooseError("HouLuxEps: at least one of the creep should be active.");
@@ -143,7 +145,7 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
   ScalarType F_ds = stress_delta - ((eta_D)*(beta_TC)*(kappa_beta));
   ScalarType F_dz = 6.0 * (-smin);
   _damage_param[_qp] = _damage_param_old[_qp];
-  const ScalarType  damage_rate = (_a15/(1.0-(_damage_param[_qp]))) * (F_ds + F_dz);
+  const ScalarType  damage_rate = (_a15/(1.0 - pow(_damage_param[_qp],_a17 ))) * pow((F_ds + F_dz),_a16);
   _damage_param[_qp] = _damage_param_old[_qp] + MetaPhysicL::raw_value(damage_rate) * _dt; // update damage param
 
   const ScalarType etaM = _etaM0 * std::exp(_mvM * stress_delta);
@@ -191,7 +193,7 @@ return creep_rate * _dt - scalar;
    const GenericReal<is_ad> F_ds = stress_delta - ((eta_D)*(beta_TC)*(kappa_beta));
    const GenericReal<is_ad> F_dz = 6.0 * (-smin);
    _damage_param[_qp] = _damage_param_old[_qp];
-   const GenericReal<is_ad> damage_rate = (_a15/(1.0-(_damage_param[_qp]))) * (F_ds + F_dz);
+   const GenericReal<is_ad> damage_rate = (_a15/(1.0 - pow(_damage_param[_qp],_a17 ))) * pow((F_ds + F_dz),_a16);
    _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;    // update damage param
 
    const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * effective_trial_stress);
