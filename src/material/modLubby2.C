@@ -90,7 +90,7 @@ modLubby2Templ<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
   {
     // Maxwell and Kelvin
   const ScalarType M_creep_rate = stress_delta / (3.0 * etaM);
-  const ScalarType K_creep_rate = stress_delta / (3.0 * etaK) - (_three_shear_modulus*_kelvin_creep_rate[_qp])/(3.0*etaK);
+  const ScalarType K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp])/etaK);
 return (M_creep_rate + K_creep_rate) * _dt - scalar;
    }
     else if (_etaM0 != 0.0 && _etaK0 == 0.0)
@@ -100,7 +100,8 @@ return (M_creep_rate + K_creep_rate) * _dt - scalar;
 return creep_rate * _dt - scalar;
   }
   // Kelvin
-   const ScalarType creep_rate = stress_delta / (3.0 * etaK) - (_three_shear_modulus*_kelvin_creep_rate[_qp])/(3.0*etaK);
+   const ScalarType creep_rate =
+(stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp])/etaK);
  return creep_rate * _dt - scalar;
 }
 
@@ -119,21 +120,24 @@ modLubby2Templ<is_ad>::computeDerivative(const GenericReal<is_ad> & effective_tr
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
 
   if (_etaM0 != 0.0 && _etaK0 != 0.0)
+   // Maxwell and Kelvin
   {
     const GenericReal<is_ad> M_creep_rate_derivative =
-      _three_shear_modulus / (3.0 * etaM) * (1.0 + _mvM * stress_delta);
+      -_three_shear_modulus / (3.0 * etaM) * (1.0 + (_mvM * stress_delta));
   const GenericReal<is_ad> K_creep_rate_derivative =
-      (_three_shear_modulus / (3.0 * etaK)) * (1.0 + (_mvK * (stress_delta - (_three_shear_modulus*_kelvin_creep_rate[_qp]))));
+      (_three_shear_modulus / (3.0 * etaK)) * (-1.0 + (_mvK * (stress_delta - (3.0 *GK*_kelvin_creep_rate[_qp]))) + (3.0 *GK*_kelvin_creep_rate[_qp]*_mk));
 return (M_creep_rate_derivative + K_creep_rate_derivative) * _dt - 1.0;
   }
       else if (_etaM0 != 0.0 && _etaK0 == 0.0)
+    // Maxwell
   {
     const GenericReal<is_ad> creep_rate_derivative =
-          _three_shear_modulus / (3.0 * etaM) * (1.0 + _mvM * stress_delta);
+          -_three_shear_modulus / (3.0 * etaM) * (1.0 + (_mvM * stress_delta));
     return creep_rate_derivative * _dt - 1.0;
    }
+   // Kelvin
   const GenericReal<is_ad> creep_rate_derivative =
-        (_three_shear_modulus / (3.0 * etaK)) * (1.0 + (_mvK * (stress_delta - (_three_shear_modulus*GK*_kelvin_creep_rate[_qp]))));
+        (_three_shear_modulus / (3.0 * etaK)) * (-1.0 + (_mvK * (stress_delta - (3.0 *GK*_kelvin_creep_rate[_qp]))) + (3.0 *GK*_kelvin_creep_rate[_qp]*_mk));
  return creep_rate_derivative * _dt - 1.0;
 }
 
