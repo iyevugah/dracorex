@@ -102,10 +102,10 @@ HouLuxEpsTempl<is_ad>::computeStressInitialize(const GenericReal<is_ad> & /*effe
   Real smin = ((stress_new) - deviatoric_stress).trace(); // minimum principal stress
 }
 
-
+/*
 /// Damage evolution
 template <bool is_ad>
-void
+GenericReal<is_ad>
 HouLuxEpsTempl<is_ad>::updateDamageParam(const GenericReal<is_ad> & effective_trial_stress,
                                           const GenericReal<is_ad> & scalar)
 {
@@ -121,9 +121,9 @@ HouLuxEpsTempl<is_ad>::updateDamageParam(const GenericReal<is_ad> & effective_tr
   const GenericReal<is_ad> F_dz = 6.0 * (-smin);
   _damage_param[_qp] = _damage_param_old[_qp];
   const GenericReal<is_ad> damage_rate = (_a15/(1.0-(_damage_param[_qp]))) * (F_ds + F_dz);
-  _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;
+  return _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;
 }
-
+*/
 
 /// Compute the Residuals when automatic_differentiation = false
 template <bool is_ad>
@@ -133,6 +133,19 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
                                                  const ScalarType & scalar)
 {
   const ScalarType stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
+  //computing the Damage Parameter
+  ScalarType lode_param = (27 / 2) * (J3_sig) / (stress_delta);  // Lode Parameter
+  ScalarType lode_ang = 1 - ((2 / pi) * acos(lode_param));       // Lode Angle
+  ScalarType eta_D = (1.0) - (_a4 * std::exp(-_a5*smin));
+  ScalarType beta_TC = (_a6) - (_a7* std::exp(-_a8*smin));
+  ScalarType kappa_beta = pow(1.0 / (cos(lode_ang + (pi / 6.0)) + _a9 * sin(lode_ang + (pi / 6.0))),
+                                exp(-(_a10) * smin));
+  ScalarType F_ds = stress_delta - ((eta_D)*(beta_TC)*(kappa_beta));
+  ScalarType F_dz = 6.0 * (-smin);
+  _damage_param[_qp] = _damage_param_old[_qp];
+  const ScalarType  damage_rate = (_a15/(1.0-(_damage_param[_qp]))) * (F_ds + F_dz);
+  _damage_param[_qp] = _damage_param_old[_qp] + MetaPhysicL::raw_value(damage_rate) * _dt; // update damage param
+
   const ScalarType etaM = _etaM0 * std::exp(_mvM * stress_delta);
   const ScalarType etaK = _etaK0 * std::exp(_mvK * stress_delta);
   const ScalarType GK = _GK0 * std::exp(_mk * stress_delta);
@@ -168,6 +181,19 @@ return creep_rate * _dt - scalar;
                                              const GenericReal<is_ad> & scalar)
  {
    const GenericReal<is_ad> stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
+   // computing the Damage Parameter
+    GenericReal<is_ad> lode_param = (27 / 2) * (J3_sig) / (stress_delta);  // Lode Parameter
+   const GenericReal<is_ad> lode_ang = 1 - ((2 / pi) * acos(lode_param));       // Lode Angle
+   const GenericReal<is_ad> eta_D = (1.0) - (_a4 * std::exp(-_a5*smin));
+   const GenericReal<is_ad> beta_TC = (_a6) - (_a7* std::exp(-_a8*smin));
+   const GenericReal<is_ad> kappa_beta = pow(1.0 / (cos(lode_ang + (pi / 6.0)) + _a9 * sin(lode_ang + (pi / 6.0))),
+                                 exp(-(_a10) * smin));
+   const GenericReal<is_ad> F_ds = stress_delta - ((eta_D)*(beta_TC)*(kappa_beta));
+   const GenericReal<is_ad> F_dz = 6.0 * (-smin);
+   _damage_param[_qp] = _damage_param_old[_qp];
+   const GenericReal<is_ad> damage_rate = (_a15/(1.0-(_damage_param[_qp]))) * (F_ds + F_dz);
+   _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;    // update damage param
+
    const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * effective_trial_stress);
    const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
    const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
@@ -195,7 +221,6 @@ return creep_rate * _dt - scalar;
  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0)))); //+ ((_kelvin_creep_rate[_qp]*GK*_mk)/(std::sqrt(2.0/3.0))) Use this term if it is OK to include derivative of GK
 return creep_rate_derivative * _dt - 1.0;
 }
-
 
 
 template <bool is_ad>
