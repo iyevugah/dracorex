@@ -12,6 +12,22 @@
   nz = 1
 []
 
+[AuxVariables]
+   [kelvin_creep_rate]
+    order = CONSTANT
+    family = MONOMIAL
+  []
+[]
+
+[AuxKernels]
+ [kelvin_creep_rate_evol]
+    type = MaterialRealAux
+    variable = kelvin_creep_rate
+    property = kelvin_creep_rate
+    execute_on = 'initial timestep_end'
+  []
+[]
+
 [Modules/TensorMechanics/Master]
    [all]
     strain = FINITE
@@ -35,7 +51,7 @@
     type = Pressure
     variable = disp_y
     boundary = top
-    factor =  -10.0e6
+    factor = -5.5e6
     function = top_pull
   []
   [u_bottom_fix]
@@ -75,10 +91,10 @@
   [Esp_modLubby2]
     type = modLubby2
     block = 0
-    mvM =  -2.67e-8   #1.9e-6     I scaled the model parameter by e-7 
-    etaM0 = 4e7      #2.03e7  
-    mvK = -3.27e-8
-    mk =  -2.54e-8
+    mvM = 3.27e-7  # 1.9e-6  constant model param (all model params scaled by e-6) 
+    etaM0 = 4e7      #2.03e7 
+    mvK = 2.67e-7     #constant model param 
+    mk =  2.54e-7    #constant model param
     etaK0 = 1.66e5
     GK0 = 6.27e4
   []
@@ -101,7 +117,7 @@
   nl_abs_tol = 1e-6
   l_tol = 1e-5
   start_time = 0.0
-  end_time = 1.0
+  end_time = 100.0
   num_steps = 10
   dt = 0.1
 []
@@ -131,6 +147,11 @@
     type = PointValue
     point = '1 1 1'
     variable = creep_strain_zz
+  []
+   [scalar_Kelvin_strain_rate]
+   type = PointValue
+   point = '1 1 1'
+   variable = kelvin_creep_rate
   []
 []
 
