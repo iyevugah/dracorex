@@ -30,7 +30,7 @@
 
 [Modules/TensorMechanics/Master]
    [all]
-    strain = FINITE
+    strain = SMALL
     incremental = true
     add_variables = true
     generate_output = 'stress_yy creep_strain_xx creep_strain_yy creep_strain_zz elastic_strain_yy'  
@@ -92,7 +92,7 @@
     type = modLubby2
     block = 0
     mvM = 3.27e-7  # 1.9e-6  constant model param (all model params scaled by e-6) 
-    etaM0 = 4e7      #2.03e7 
+    etaM0 = 4.03e7      #2.03e7 
     mvK = 2.67e-7     #constant model param 
     mk =  2.54e-7    #constant model param
     etaK0 = 1.66e5
