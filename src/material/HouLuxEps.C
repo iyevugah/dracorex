@@ -228,12 +228,12 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
 
     else if (_etaM0 != 0.0 && _etaK0 == 0.0)
 {
-  //Maxwell
+  //Maxwell creep
   const GenericReal<is_ad> creep_rate_derivative =
         (_three_shear_modulus/((1.0 -_damage_param[_qp]) * etaM)) * ((stress_delta*_mvM)-1);
   return creep_rate_derivative * _dt - 1.0;
  }
- // Kelvin
+ // Kelvin creep
  const GenericReal<is_ad> creep_rate_derivative =
  (_three_shear_modulus/etaK)* (((stress_delta*_mvK)/(1.0 -_damage_param[_qp])) - (1.0/(1.0-_damage_param[_qp])) -
  ((_kelvin_creep_rate[_qp]*GK*_mvK)/(std::sqrt(2.0/3.0))));
