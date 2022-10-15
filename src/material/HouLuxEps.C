@@ -39,6 +39,10 @@ HouLuxEpsTempl<is_ad>::validParams()
   params.addRequiredParam<Real>("a15", "model parameter 15");
   params.addRequiredParam<Real>("a16", "model parameter 16");
   params.addRequiredParam<Real>("a17", "model parameter 17");
+  params.addRequiredParam<Real>("sigma0", "model parameter sigma0");
+  params.addRequiredParam<Real>("L", "model parameter L");
+  params.addRequiredParam<Real>("L1", "model parameter L1");
+  params.addRequiredParam<Real>("T", "model parameter T");
   return params;
 }
 
@@ -68,7 +72,11 @@ HouLuxEpsTempl<is_ad>::HouLuxEpsTempl(const InputParameters & parameters)
     _a10 (this->template getParam<Real>("a10")),
     _a15 (this->template getParam<Real>("a15")),
     _a16 (this->template getParam<Real>("a16")),
-    _a17 (this->template getParam<Real>("a17"))
+    _a17 (this->template getParam<Real>("a17")),
+    _sigma0 (this->template getParam<Real>("sigma0")),
+    _L (this->template getParam<Real>("L")),
+    _L1 (this->template getParam<Real>("L1")),
+    _T (this->template getParam<Real>("T"))
 {
   if (_etaM0 == 0.0 && _etaK0 == 0.0)
     mooseError("HouLuxEps: at least one of the creep should be active.");
@@ -148,9 +156,9 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
   const ScalarType  damage_rate = (_a15/(pow(1.0 - _damage_param[_qp],_a17 ))) * pow((F_ds + F_dz),_a16);
   _damage_param[_qp] = _damage_param_old[_qp] + MetaPhysicL::raw_value(damage_rate) * _dt; // update damage param
 
-  const ScalarType etaM = _etaM0 * std::exp(_mvM * stress_delta);
+  const ScalarType etaM = _etaM0 * std::exp(_mvM * stress_delta)*std::exp(_L*_T);
   const ScalarType etaK = _etaK0 * std::exp(_mvK * stress_delta);
-  const ScalarType GK = _GK0 * std::exp(_mk * stress_delta);
+  const ScalarType GK = _GK0 * std::exp(_mk * stress_delta)*std::exp(_L1*_T);
   _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
 
   if (_etaM0 != 0.0 && _etaK0 != 0.0)
@@ -197,9 +205,9 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
    const GenericReal<is_ad> damage_rate = (_a15/(1.0 - pow(_damage_param[_qp],_a17 ))) * pow((F_ds + F_dz),_a16);
    _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;    // update damage param
 
-   const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * effective_trial_stress);
+   const GenericReal<is_ad> etaM = _etaM0 * std::exp(_mvM * stress_delta)*std::exp(_L*_T);
    const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
-   const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta);
+   const GenericReal<is_ad> GK = _GK0 * std::exp(_mk * stress_delta)*std::exp(_L1*_T);
    _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
 
    if (_etaM0 != 0.0 && _etaK0 != 0.0)
