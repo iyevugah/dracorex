@@ -35,10 +35,10 @@ HouLuxEpsTempl<is_ad>::validParams()
   params.addRequiredParam<Real>("a7", "model parameter 7");
   params.addRequiredParam<Real>("a8", "model parameter 8");
   params.addRequiredParam<Real>("a9", "model parameter 9");
-  params.addRequiredParam<Real>("a10", "model paramete 10");
-  params.addRequiredParam<Real>("a15", "model paramete 15");
-  params.addRequiredParam<Real>("a15", "model paramete 16");
-  params.addRequiredParam<Real>("a17", "model paramete 17");
+  params.addRequiredParam<Real>("a10", "model parameter 10");
+  params.addRequiredParam<Real>("a15", "model parameter 15");
+  params.addRequiredParam<Real>("a16", "model parameter 16");
+  params.addRequiredParam<Real>("a17", "model parameter 17");
   return params;
 }
 
@@ -67,7 +67,7 @@ HouLuxEpsTempl<is_ad>::HouLuxEpsTempl(const InputParameters & parameters)
     _a9 (this->template getParam<Real>("a9")),
     _a10 (this->template getParam<Real>("a10")),
     _a15 (this->template getParam<Real>("a15")),
-    _a16 (this->template getParam<Real>("a15")),
+    _a16 (this->template getParam<Real>("a16")),
     _a17 (this->template getParam<Real>("a17"))
 {
   if (_etaM0 == 0.0 && _etaK0 == 0.0)
@@ -136,7 +136,7 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
 {
   const ScalarType stress_delta = effective_trial_stress - (_three_shear_modulus * scalar);
   //computing the Damage Parameter
-  ScalarType lode_param = (27 / 2) * (J3_sig) / (stress_delta);  // Lode Parameter
+  ScalarType lode_param = (27 / 2) * (J3_sig) / pow(stress_delta,3.0);  // Lode Parameter
   ScalarType lode_ang = 1 - ((2 / pi) * acos(lode_param));       // Lode Angle
   ScalarType eta_D = (1.0) - (_a4 * std::exp(-_a5*smin));
   ScalarType beta_TC = (_a6) - (_a7* std::exp(-_a8*smin));
@@ -145,7 +145,7 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
   ScalarType F_ds = stress_delta - ((eta_D)*(beta_TC)*(kappa_beta));
   ScalarType F_dz = 6.0 * (-smin);
   _damage_param[_qp] = _damage_param_old[_qp];
-  const ScalarType  damage_rate = (_a15/(1.0 - pow(_damage_param[_qp],_a17 ))) * pow((F_ds + F_dz),_a16);
+  const ScalarType  damage_rate = (_a15/(pow(1.0 - _damage_param[_qp],_a17 ))) * pow((F_ds + F_dz),_a16);
   _damage_param[_qp] = _damage_param_old[_qp] + MetaPhysicL::raw_value(damage_rate) * _dt; // update damage param
 
   const ScalarType etaM = _etaM0 * std::exp(_mvM * stress_delta);
@@ -154,29 +154,30 @@ HouLuxEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
   _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
 
   if (_etaM0 != 0.0 && _etaK0 != 0.0)
-  {
-    // Maxwell and Kelvin
-  const ScalarType M_creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
-  const ScalarType K_creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
+      {
+      // Maxwell and Kelvin
+       const ScalarType M_creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
+       const ScalarType K_creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
                                    ((GK*(_kelvin_creep_rate[_qp]))/ ((std::sqrt(2.0/3.0))* etaK));
-return (M_creep_rate + K_creep_rate) * _dt - scalar;
-   }
+       return (M_creep_rate + K_creep_rate) * _dt - scalar;
+      }
 
-   else if (_etaM0 != 0.0 && _etaK0 == 0.0)
- // Maxwell
- {
-   const ScalarType creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
-return creep_rate * _dt - scalar;
- }
- // Kelvin
-  const ScalarType creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
+       else if (_etaM0 != 0.0 && _etaK0 == 0.0)
+      // Maxwell
+      {
+        const ScalarType creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
+        return creep_rate * _dt - scalar;
+      }
+      // Kelvin
+       const ScalarType creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
                                 ((GK*(_kelvin_creep_rate[_qp]))/ ((std::sqrt(2.0/3.0))* etaK));
- return creep_rate * _dt - scalar;
+         return creep_rate * _dt - scalar;
  }
-
 
 
  /// Compute the Derivatives when automatic_differentiation = false
+ /// in the SingleVariableReturnMappingSolution.C file in MOOSE. Otherwise,
+ /// no need to compute derivatives.
  template <bool is_ad>
  GenericReal<is_ad>
  HouLuxEpsTempl<is_ad>::computeDerivative(const GenericReal<is_ad> & effective_trial_stress,
