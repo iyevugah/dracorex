@@ -61,7 +61,7 @@
     type = Pressure
     variable = disp_y
     boundary = top
-    factor = -10.0e6
+    factor = '-10.0e6'
     function = top_pull
   []
   [u_bottom_fix]
@@ -113,7 +113,7 @@
       a9 = 1.0
      a10 = 0.25
      a15 = 1.67e-1
-     a16 = 1.0e8
+     a16 = 1.0e-8
      a17 = 3.5e-8
   []
 []
