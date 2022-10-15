@@ -106,6 +106,10 @@ protected:
     Real _a15;
     Real _a16;
     Real _a17;
+    Real _sigma0;
+    Real _L;
+    Real _L1;
+    Real _T;
 
   // 3rd deviatoric stress invariant and the min. principal stress
     Real J3_sig;
