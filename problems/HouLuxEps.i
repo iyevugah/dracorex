@@ -97,28 +97,31 @@
     tangent_operator = elastic
     combined_inelastic_strain_weights = '1.0'
   []
-  [HouLux_Eps]
+  [HouLux_Eps] 
+# The following material params were taken from Hou.2003 
+# (Mechanical and hydraulic behavior of rock salt in the excavation
+# disturbed zone around underground facilities).
     type = HouLuxEps
-    mvM =  -2.47e-6             #-2.67e-8  1.9e-6     I scaled the model parameter by e-7 
-    etaM0 = 2.03e7           # 4e7      2.03e7  
-    mvK =   -1.68e-6            # -3.27e-8
-    mk =    -1.91e-6           # -2.54e-8
-    etaK0 =  8.94e3            # 1.66e5
-    GK0 =    5.08e5          # 6.27e4
-      a4 = 0.3
-      a5 = 0.05
-      a6 = 67.0
-      a7 = 41.0
-      a8 = 0.25
-      a9 = 1.0
+    GK0 =  5.08e5 
+  etaK0 =  8.94e4
+  etaM0 =  2.03e7
+     mk =  -1.91e-6    #scaled by e-5
+    mvK =  -1.68e-6    #scaled by e-5
+    mvM =  -2.47e-6    #scaled by e-5
+     a4 = 0.8
+     a5 = 0.055
+     a6 = 67.0
+     a7 = 41.0
+     a8 = 0.25
+     a9 = 1.0
      a10 = 0.25
-     a15 = 1.67e-1
-     a16 = 1.0e-8
-     a17 = 3.5e-8
-     sigma0 = 1.0
-       L= 5.5E-2
-      L1= 0.0
-       T= 313
+     a15 = 1.67e-8
+     a16 = 5.0e-3      #scaled by e-3
+     a17 = 5.5   
+  sigma0 = 1.0
+       L =  0.0     
+      L1 =  0.0   
+       T = 298
   []
 []
 
