@@ -125,8 +125,8 @@ LuxWoltersEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & ef
   //computing the Damage Parameter
   ScalarType lode_param = (27 / 2) * (J3_sig) / pow(stress_delta,3.0);  // Lode Parameter
   ScalarType lode_ang = 1 - ((2 / pi) * acos(lode_param));       // Lode Angle
-  ScalarType eta_D = (1.0) - (_a4 * std::exp(-_a5*smin));
-  ScalarType beta_TC = (_a6) - (_a7* std::exp(-_a8*smin));
+  ScalarType eta_D = (1.0) - (_a4 * exp(-_a5*smin));
+  ScalarType beta_TC = (_a6) - (_a7* exp(-_a8*smin));
   ScalarType kappa_beta = pow(1.0 / (cos(lode_ang + (pi / 6.0)) + _a9 * sin(lode_ang + (pi / 6.0))),
                                 exp(-(_a10) * smin));
   ScalarType F_ds = stress_delta - ((eta_D)*(beta_TC)*(kappa_beta));
@@ -136,17 +136,17 @@ LuxWoltersEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & ef
   _damage_param[_qp] = _damage_param_old[_qp] + MetaPhysicL::raw_value(damage_rate) * _dt; // update damage param
 
   const ScalarType etaM = _etaM0 * pow((stress_delta/_sigma0)/(1-_damage_param[_qp]),_a)
-                          * std::exp(_mvM * stress_delta)*std::exp(_L*_T);
-  const ScalarType etaK = _etaK0 * std::exp(_mvK * stress_delta);
+                          * exp(_mvM * stress_delta)*exp(_L*_T);
+  const ScalarType etaK = _etaK0 * exp(_mvK * stress_delta/(1-_damage_param[_qp]));
   const ScalarType GK = _GK0 * pow((stress_delta/_sigma0)/(1-_damage_param[_qp]),_b)
-                          * std::exp(_mk * stress_delta)*std::exp(_L1*_T);
+                          * exp(_mk * stress_delta)*exp(_L1*_T);
   _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
 
   if (_etaM0 != 0.0 && _etaK0 != 0.0)
       {
       // Maxwell and Kelvin
        const ScalarType M_creep_rate = (stress_delta / ((1.0 -_damage_param[_qp]) * etaM));
-       const ScalarType K_creep_rate = (stress_delta/((1.0-_damage_param[_qp])* etaK)) -
+       const ScalarType K_creep_rate = (stress_delta/((1.0 -_damage_param[_qp])* etaK)) -
                                    ((GK*(_kelvin_creep_rate[_qp]))/ ((std::sqrt(2.0/3.0))* etaK));
        return (M_creep_rate + K_creep_rate) * _dt - scalar;
       }
@@ -176,8 +176,8 @@ LuxWoltersEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & ef
    // computing the Damage Parameter
     GenericReal<is_ad> lode_param = (27 / 2) * (J3_sig) / (stress_delta);  // Lode Parameter
    const GenericReal<is_ad> lode_ang = 1 - ((2 / pi) * acos(lode_param));       // Lode Angle
-   const GenericReal<is_ad> eta_D = (1.0) - (_a4 * std::exp(-_a5*smin));
-   const GenericReal<is_ad> beta_TC = (_a6) - (_a7* std::exp(-_a8*smin));
+   const GenericReal<is_ad> eta_D = (1.0) - (_a4 * exp(-_a5*smin));
+   const GenericReal<is_ad> beta_TC = (_a6) - (_a7* exp(-_a8*smin));
    const GenericReal<is_ad> kappa_beta = pow(1.0 / (cos(lode_ang + (pi / 6.0)) + _a9 * sin(lode_ang + (pi / 6.0))),
                                  exp(-(_a10) * smin));
    const GenericReal<is_ad> F_ds = stress_delta - ((eta_D)*(beta_TC)*(kappa_beta));
@@ -187,10 +187,10 @@ LuxWoltersEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & ef
    _damage_param[_qp] = _damage_param_old[_qp] + damage_rate * _dt;    // update damage param
 
    const GenericReal<is_ad> etaM = _etaM0 * pow((stress_delta/_sigma0)/(1-_damage_param[_qp]),_a)
-                                  * std::exp(_mvM * stress_delta)*std::exp(_L*_T);
-   const GenericReal<is_ad> etaK = _etaK0 * std::exp(_mvK * stress_delta);
+                                  * exp(_mvM * stress_delta)*exp(_L*_T);
+   const GenericReal<is_ad> etaK = _etaK0 * exp(_mvK * stress_delta/(1-_damage_param[_qp]));
    const GenericReal<is_ad> GK = _GK0 * pow((stress_delta/_sigma0)/(1-_damage_param[_qp]),_b)
-                                  * std::exp(_mk * stress_delta)*std::exp(_L1*_T);
+                                  * exp(_mk * stress_delta)*exp(_L1*_T);
    _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp] + scalar;
 
    if (_etaM0 != 0.0 && _etaK0 != 0.0)
@@ -220,7 +220,7 @@ LuxWoltersEpsTempl<is_ad>::computeResidualInternal(const GenericReal<is_ad> & ef
         (_three_shear_modulus/((1.0 -_damage_param[_qp]) * etaM)) * ((stress_delta*_mvM)-1);
   // Use the following for the M_creep_rate derivative if GK must be differentiated:
   // const GenericReal<is_ad> M_creep_rate_derivative = (_three_shear_modulus/((1.0 -_damage_param[_qp]) * etaM)) *
-  //                                                (-1 + ((stress_delta*_mvM ) - (_a*_damage_param[_qp])+_a)); 
+  //                                                (-1 + ((stress_delta*_mvM ) - (_a*_damage_param[_qp])+_a));
   return creep_rate_derivative * _dt - 1.0;
  }
  //Kelvin
