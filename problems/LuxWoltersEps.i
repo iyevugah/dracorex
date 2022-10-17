@@ -51,7 +51,7 @@
 [Functions]
   [top_pull]
     type = PiecewiseLinear
-    x = '0 1'
+    x = '0 100'
     y = '1 1'
   []
 []
@@ -88,7 +88,7 @@
 [Materials]
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 2e10     # 2e11
+    youngs_modulus = 2e11     # 2e11
     poissons_ratio = 0.3      # 0.3
   []
   [radial_return_stress]
@@ -98,29 +98,35 @@
     combined_inelastic_strain_weights = '1.0'
   []
   [LuxWolters_Eps]
-    type = LuxWoltersEps
-    mvM =  -2.47e-6             #-2.67e-8  1.9e-6     I scaled the model parameter by e-7 
-    etaM0 = 2.03e7           # 4e7      2.03e7  
-    mvK =   -1.68e-6            # -3.27e-8
-    mk =    -1.91e-6           # -2.54e-8
-    etaK0 =  8.94e3            # 1.66e5
-    GK0 =    5.08e5          # 6.27e4
-      a4 = 0.3
-      a5 = 0.05
-      a6 = 67.0
-      a7 = 41.0
-      a8 = 0.25
-      a9 = 1.0
-     a10 = 0.25
-     a15 = 1.67e-1
-     a16 = 1.0e-8
-     a17 = 3.5e-8
-     sigma0 = 1.0
-       L= 5.5E-2
-      L1= 0.0
-       T= 333
-       a = 0
-       b = 0
+# The following material params were taken from: 
+# Verbundprojekt: Vergleich aktueller Stoffgesetze und
+# Vorgehensweisen anhand von Modellberechnungen
+# zum thermo-mechanischen Verhalten und
+# zur Verheilung von Steinsalz (TV 5: TUC). 
+# Available here: (https://www.ptka.kit.edu/Entsorgung/02E10820-TUC.pdf)
+    type = LuxWoltersEps    
+    etaM0 =  3.0e7           
+    mvM   = -3.621e-8    #scaled by e-7
+    GK0   = 3.6342e4    
+    mk    = -0.1831e-8   #scaled by e-7
+    etaK0 = 6.64768e5    
+    mvK   =  -2.898e-8   #scaled by e-7       
+       L  = 0.055
+      L1  = 0.0
+       T  = 200
+       a  = 0
+       b  = 0 
+      a4  = 0.82
+      a5  = 0.1
+      a6  = 63.0
+      a7  = 32.0
+      a8  = 0.22
+      a9 = 0.17 
+     a10 = 1e-3 
+     a15 = 34e-3 
+     a16 = 3.1e-3        #scaled by e-3
+     a17 = 1.0 
+   sigma0 = 1.0
   []
 []
 
@@ -140,10 +146,10 @@
   nl_rel_tol = 1e-6
   nl_abs_tol = 1e-6
   l_tol = 1e-5
-  start_time = 0.0
-  end_time = 100.0
+  start_time = '0.0'
+  end_time = '100'
   num_steps = 100
-  dt = 0.001
+  dt = 0.01
 []
 
 [Postprocessors]
