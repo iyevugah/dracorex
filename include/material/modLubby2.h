@@ -10,6 +10,9 @@
 #pragma once
 
 #include "RadialReturnCreepStressUpdateBase.h"
+#include<algorithm>
+#include <complex>
+#include<cmath>
 
 /**
  * This class uses the stress update material in a radial return isotropic creep
