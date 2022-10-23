@@ -90,7 +90,7 @@ modLubby2Templ<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effect
   {
     // Maxwell and Kelvin
   const ScalarType M_creep_rate = stress_delta / (3.0 * etaM);
-  const ScalarType K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp])/etaK);
+  const ScalarType K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp]*std::sqrt(2./3.))/(etaK));
 return (M_creep_rate + K_creep_rate) * _dt - scalar;
    }
     else if (_etaM0 != 0.0 && _etaK0 == 0.0)
@@ -101,7 +101,7 @@ return creep_rate * _dt - scalar;
   }
   // Kelvin
    const ScalarType creep_rate =
-(stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp])/etaK);
+(stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp]*std::sqrt(2./3.))/etaK);
  return creep_rate * _dt - scalar;
 }
 
