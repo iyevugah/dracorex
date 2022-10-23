@@ -1,4 +1,4 @@
-# 1x1x1 unit cube with uniform pressure on top face
+# 3x3x3 unit cube with uniform pressure on top face
 
 [GlobalParams]
   displacements = 'disp_x disp_y disp_z'
@@ -7,9 +7,9 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 1
-  ny = 1
-  nz = 1
+  nx = 3
+  ny = 3
+  nz = 3
 []
 
 [AuxVariables]
@@ -41,7 +41,7 @@
 [Functions]
   [top_pull]
     type = PiecewiseLinear
-    x = '0 1'
+    x = '0 15'
     y = '1 1'
   []
 []
@@ -51,7 +51,7 @@
     type = Pressure
     variable = disp_y
     boundary = top
-    factor = -5.5e6
+    factor = -2.0e5
     function = top_pull
   []
   [u_bottom_fix]
@@ -78,7 +78,7 @@
   [elasticity_tensor]
     type = ComputeIsotropicElasticityTensor
     block = 0
-    youngs_modulus = 2e11
+    youngs_modulus = 2e8
     poissons_ratio = 0.3
   []
   [radial_return_stress]
@@ -89,14 +89,17 @@
     combined_inelastic_strain_weights = '1.0'
   []
   [Esp_modLubby2]
+# The following material params were taken from Zhang. et al. (2003) 
+#Error-controlled implicit time integration of
+#elasto-visco-plastic constitutive models for rock salt
     type = modLubby2
     block = 0
-    mvM = 3.27e-7  # 1.9e-6  constant model param (all model params scaled by e-6) 
-    etaM0 = 4.03e7      #2.03e7 
-    mvK = 2.67e-7     #constant model param 
-    mk =  2.54e-7    #constant model param
-    etaK0 = 1.66e5
-    GK0 = 6.27e4
+    etaM0 =  4.03e7           
+    mvM   = -0.327e-6    #scaled by e-7
+    GK0   = 6.27e4    
+    mk    = -0.254e-6   #scaled by e-7
+    etaK0 = 1.66e5    
+    mvK   =  -0.267e-6   #scaled by e-7
   []
 []
 
@@ -117,9 +120,9 @@
   nl_abs_tol = 1e-6
   l_tol = 1e-5
   start_time = 0.0
-  end_time = 100.0
-  num_steps = 10
-  dt = 0.1
+  end_time = 15.0
+ # num_steps = 10
+ # dt = 0.1
 []
 
 [Postprocessors]
