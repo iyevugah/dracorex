@@ -10,7 +10,7 @@ Lubby2Templ<is_ad>::validParams()
 {
   InputParameters params = RadialReturnCreepStressUpdateBaseTempl<is_ad>::validParams();
   params.addClassDescription(
-    "This is a basic creep model for rocksalt based on the modified Lubby2 model. See Zhang"
+    "This is a basic creep model for rocksalt based on the Lubby2 model. See Zhang"
     "and Nagel (2020): Error-controlled implicit time integration of elasto-visco-plastic"
     "constitutive models for rock salt. It uses the StressUpdate class in the radialreturn"
     "isotropic creep model");
@@ -41,8 +41,6 @@ Lubby2Templ<is_ad>::Lubby2Templ(const InputParameters & parameters)
     _GK0(this->template getParam<Real>("GK0")),
     _kelvin_creep_rate(this->template declareGenericProperty<Real, is_ad>("kelvin_creep_rate")),
     _kelvin_creep_rate_old(this->template getMaterialPropertyOld<Real>("kelvin_creep_rate")),
-    scalar(this->template declareGenericProperty<Real, is_ad>("kelvin_creep_rate")),
-    scalar_old(this->template getMaterialPropertyOld<Real>("kelvin_creep_rate")),
 //    _EQstress(this->template getParam<Real>("EQstress")),
 //    _EQstressFn(isParamValid("EQstressFn") ? &getFunction("_EQstressFn"): nullptr),
 //    _function_EQstress(parameters.get<bool>("function_EQstress"))
@@ -61,7 +59,6 @@ void
 Lubby2Templ<is_ad>::initQpStatefulProperties()
 {
   _kelvin_creep_rate[_qp] = 0.0;
-  scalar[_qp] = 0.0;
 }
 
 
@@ -71,7 +68,6 @@ void
 Lubby2Templ<is_ad>::propagateQpStatefulProperties()
 {
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp];
-  scalar[_qp] = scalar_old[_qp];
   RadialReturnStressUpdateTempl<is_ad>::propagateQpStatefulPropertiesRadialReturn();
 }
 
@@ -84,7 +80,6 @@ Lubby2Templ<is_ad>::computeStressInitialize(
     const GenericRankFourTensor<is_ad> & elasticity_tensor)
 {
   _kelvin_creep_rate[_qp] = _kelvin_creep_rate_old[_qp];
-  scalar[_qp] = scalar_old[_qp];
 }
 
 
@@ -122,7 +117,6 @@ Lubby2Templ<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effective
   const ScalarType GK = _GK0 * std::exp(_mk * eff);
 // _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
 // _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(scalar);
-//   scalar[_qp] +=  MetaPhysicL::raw_value(scalar);
 
     if (_etaM0 != 0.0 && _etaK0 != 0.0)
   {
@@ -130,8 +124,8 @@ Lubby2Templ<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effective
   const ScalarType M_creep_rate = stress_delta / (3.0 * etaM);
 
   ScalarType K_creep_rate; //const ScalarType
-  _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(K_creep_rate* _dt);
-  K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp])/(etaK));
+  _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(K_creep_rate * _dt);
+  K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK *_kelvin_creep_rate[_qp])/(etaK));
   //const ScalarType K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp]*std::sqrt(2./3.))/(etaK));
 
 return ((M_creep_rate + K_creep_rate) * _dt) - scalar;

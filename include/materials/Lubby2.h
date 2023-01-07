@@ -6,7 +6,7 @@
 #include<cmath>
 
 /**
- * This is a basic creep model for rocksalt based on the modified Lubby2 model. See Zhang
+ * This is a basic creep model for rocksalt based on the Lubby2 model. See Zhang
  * and Nagel (2020): Error-controlled implicit time integration of elasto-visco-plastic
  * constitutive models for rock salt. It uses the StressUpdate class in the radialreturn
  * isotropic creep model.
@@ -73,9 +73,6 @@ protected:
 
   GenericMaterialProperty<Real, is_ad> & _kelvin_creep_rate;
   const MaterialProperty<Real> & _kelvin_creep_rate_old;
-
-  GenericMaterialProperty<Real, is_ad>& scalar;
-  const MaterialProperty<Real>& scalar_old;
 
   // The (applied) stress responsible for the creep (or strain-rate) as a single value
   const RankTwoTensor _EQstress;
