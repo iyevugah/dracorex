@@ -115,18 +115,19 @@ Lubby2Templ<is_ad>::computeResidualInternal(const GenericReal<is_ad> & effective
   const ScalarType etaM = _etaM0 * std::exp(_mvM * eff);
   const ScalarType etaK = _etaK0 * std::exp(_mvK * eff);
   const ScalarType GK = _GK0 * std::exp(_mk * eff);
-// _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
-// _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(scalar);
+  _kelvin_creep_rate[_qp] =  _kelvin_creep_rate_old[_qp] + MetaPhysicL::raw_value(scalar);
+//  _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(scalar);
+
 
     if (_etaM0 != 0.0 && _etaK0 != 0.0)
   {
     // Maxwell and Kelvin
   const ScalarType M_creep_rate = stress_delta / (3.0 * etaM);
 
-  ScalarType K_creep_rate; //const ScalarType
-  _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(K_creep_rate * _dt);
-  K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK *_kelvin_creep_rate[_qp])/(etaK));
-  //const ScalarType K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp]*std::sqrt(2./3.))/(etaK));
+//  ScalarType K_creep_rate; //const ScalarType
+//  _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(K_creep_rate * _dt);
+ const ScalarType K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK *_kelvin_creep_rate[_qp])/(etaK));
+//  const ScalarType K_creep_rate = (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp]*std::sqrt(2./3.))/(etaK));
 
 return ((M_creep_rate + K_creep_rate) * _dt) - scalar;
 
@@ -136,19 +137,20 @@ return ((M_creep_rate + K_creep_rate) * _dt) - scalar;
   {
    const ScalarType creep_rate = stress_delta / (3.0 * etaM);
 
-return creep_rate * _dt - scalar;
+return (creep_rate * _dt) - scalar;
 
   }
    else
   // Kelvin
   {
-  ScalarType creep_rate; //const ScalarType
-  _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(creep_rate * _dt);
-   creep_rate =
-//      (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp]*std::sqrt(2./3.))/etaK);
+//  ScalarType creep_rate; //const ScalarType
+//  _kelvin_creep_rate[_qp] += MetaPhysicL::raw_value(creep_rate * _dt);
+
+  const ScalarType creep_rate =
+      //(stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp]*std::sqrt(2./3.))/etaK);
  (stress_delta / (3.0 * etaK)) - ((GK*_kelvin_creep_rate[_qp])/(etaK));
 
- return creep_rate * _dt - scalar;
+ return (creep_rate * _dt) - scalar;
   }
 }
 
